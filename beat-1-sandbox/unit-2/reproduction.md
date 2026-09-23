@@ -15,8 +15,7 @@ label is not graded.
 
 **GitHub username**
 
-[Your GitHub username, exactly as it appears on your profile — no `@`, no profile URL. Your
-comments upstream are identified by this name.]
+DilanCaro
 
 ---
 
@@ -24,16 +23,72 @@ comments upstream are identified by this name.]
 
 **Claim comment**
 
-[Link to the comment where you claimed the issue. Use the comment's own permalink, not the
-issue page on its own. **Then paste the text of that comment underneath the link** — the
-pasted text is what this field is graded on, so copy across what you actually posted.]
+https://github.com/codepath/pathreview-ai301-fa26-s1/issues/72#issuecomment-5787937433
+
+I’d like to investigate issue #72. I’ll reproduce how `verify_password` handles a malformed stored hash in a clean environment, record the relevant versions, commands, and output, and report my results here before proposing a change.
 
 **Reproduction comment**
 
-[Link to the comment where you posted your reproduction. It must record the environment
-(OS, relevant versions, code state), steps a stranger could follow, and what you observed.
-**Then paste the text of that comment underneath the link** — the pasted text is what this
-field is graded on, so copy across what you actually posted.]
+https://github.com/codepath/pathreview-ai301-fa26-s1/issues/72#issuecomment-5788083972
+
+### Environment
+
+- OS: macOS 26.6.2 (Build 25G83)
+- Python: 3.11.2
+- passlib: 1.7.4
+- bcrypt: 4.3.0
+- pytest: 9.1.1
+- Repository: `DilanCaro/pathreview-ai301-fa26-s1`
+- Commit: `f89c06fc3ff292df2a04a39ac51319d32a76b779`
+- Installation: editable install with development dependencies in a Python 3.11 virtual environment
+
+### Steps to reproduce
+
+From a clone of the repository:
+
+```bash
+/opt/local/bin/python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -e ".[dev]"
+pytest tests/unit/test_security.py::TestSecurity::test_verify_with_wrong_hash_format -vv -rxX
+pytest tests/unit/test_security.py::TestSecurity::test_verify_with_wrong_hash_format -vv --runxfail
+```
+
+The first pytest command reports the existing test as `XFAIL` with:
+
+```text
+issue #72 (manifest H-05): password verify raises UnknownHashError instead of returning False
+```
+
+The second command uses pytest's `--runxfail` option to expose the underlying behavior
+without editing the test or implementation.
+
+### Expected behavior
+
+`verify_password("password", "not_a_valid_bcrypt_hash")` returns `False`.
+
+### Actual behavior
+
+`verify_password` raises `passlib.exc.UnknownHashError` while passlib attempts to identify
+the malformed stored hash:
+
+```text
+tests/unit/test_security.py::TestSecurity::test_verify_with_wrong_hash_format FAILED
+
+>       result = verify_password("password", wrong_hash)
+
+core/security.py:37: in verify_password
+    return bool(pwd_context.verify(plain_password, hashed_password))
+...
+E   passlib.exc.UnknownHashError: hash could not be identified
+
+FAILED tests/unit/test_security.py::TestSecurity::test_verify_with_wrong_hash_format
+======================= 1 failed, 2 warnings in 0.37s ========================
+```
+
+This reproduces the behavior described in issue #72 on the recorded commit. The two
+deprecation warnings printed by the test are unrelated to the `UnknownHashError`.
 
 ## Eval iterations
 
@@ -42,28 +97,56 @@ fields.
 
 **Run history**
 
-[The agreement score of each run you did, in order. A single run is a complete answer if
-only one run occurred. **The last score in your list must match the agreement line in the
-`eval-run.txt` you committed** — that file is the record of your final run.]
+agreement: 19/20 scored items  (bar: 18/20: below the bar; category floor unmet: no match in disclosure)
+
+agreement: 2/2 scored items
+
+agreement: 18/20 scored items  (bar: 18/20: PASS)
+
+agreement: 20/20 scored items  (bar: 18/20: PASS)
 
 **Package analysis**
 
-[Pick one scored package (`pkg-01` through `pkg-20` — the four `calib-` packages are never
-scored). Name it by id, say what your rubric decided and what the gold label said, and
-explain why your rubric read it that way.]
+I analyzed `pkg-13`. My rubric decided `reject`, and the gold label was also `reject`.
+
+The candidate report asserted:
+
+> Can 100% confirm this bug.
+
+and:
+
+> It happens every single time I have a long session going, guaranteed reproducible on my end.
+
+However, it supplied no commands, measurements, DWM observations, or other artifacts
+showing the claimed behavior. It also did not record the Windows build or Windows Terminal
+version requested by the repository's bug-report template. My rubric therefore rejected it
+under Environment fidelity, Followable reproduction, Behavior evidence, Honest conclusion,
+and Claim quality. In particular, the certainty of “guaranteed reproducible” was unsupported
+by evidence a reader could inspect.
 
 **Check rationale**
 
-[Quote one check from the `rubric.md` you uploaded to `tools/repro-check/`, exactly as it reads now.
-Then say why it reads that way — what you revised to get there, or what you rejected in
-favour of it.]
+My final rubric includes this check:
+
+> `| Behavior evidence | Read the report's observable artifacts—terminal output, logs, measurements, screenshots described in text, generated output, or control results—against the issue's actual and expected behavior. For a cannot-reproduce report, read the attempt artifacts and controls against the trigger it tried. | Pass when the shown artifacts directly support the stated result: they demonstrate the issue's distinctive behavior, or they document a faithful attempt that did not reproduce it. Fail when there is no artifact, the artifact only shows setup or normal operation, or it shows an adjacent error or symptom rather than the issue's behavior. A confident assertion is not an artifact. | required |`
+
+I wrote the check around observable behavior rather than confidence, report length, or
+formatting. The operator-swap exercise showed that a polished report can display a real
+artifact while still exercising the wrong behavior. The final wording therefore requires
+the artifact to demonstrate the issue's distinctive behavior and explicitly says that an
+adjacent error or confident assertion is insufficient. It also permits an evidenced,
+faithful cannot-reproduce result because that can still provide useful and honest evidence.
 
 **Trade-offs**
 
-[Every check gives something up. Any one of these is a complete answer: a package whose
-result it changes, a canary you re-ran with `--only`, a case you accept it will miss, or a
-stated reason nothing changed elsewhere. "Nothing changed, and here is how I know" earns
-the point in full when the reason follows.]
+The Behavior evidence check rejects potentially truthful confirmations when the author did
+not include an artifact that another reader can inspect. For example, `pkg-13` may describe
+a bug the author genuinely experienced, but statements such as “Can 100% confirm this bug”
+cannot establish that the observed lag matched the issue without measurements, output, or
+documented observations. I accept that this can miss a real confirmation because the skill
+is deciding whether a reproduction is ready to post, not whether the author's experience is
+possible. Requiring shareable evidence reduces unsupported confirmations and wrong-target
+reports.
 
 ---
 
