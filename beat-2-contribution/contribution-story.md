@@ -8,10 +8,9 @@ format criteria grade exactly that. Your course repo link is the whole submissio
 files and no evidence uploads are part of Assignment 5.
 
 **Contribution Number:** [1]
-**Student:** [Student name]
-**GitHub Username:** [your GitHub username, exactly as it appears on your profile - no @, no
-profile URL. Your comments upstream are identified by this name.]
-**Issue:** [GitHub issue link]
+**Student:** [Dilan Caro]
+**GitHub Username:** [DilanCaro]
+**Issue:** [https://github.com/apowerb/apowerb/issues/364]
 **Pull Request:** [GitHub PR link, once opened]
 
 One repository, built across units 5 to 8, telling the whole story of your real
@@ -55,10 +54,9 @@ happened; these entries are the toolkit's own timeline.
 All four entries are graded. Keep every heading below, and fill each
 one in the week it belongs to.
 
-**Unit 5: [one line on the tool work]**
+**Unit 5: Upgraded issue-select into issue-scout with a RAG/DP/ML search strategy**
 
-[2-4 sentences: what you built (the scout, your strategy), what broke
-or fell short, what changed because of it.]
+I installed the Unit 5 scout over my Unit 1 `issue-select` skill (kept `rubric.md` and `references/evidence-guide.md`), restored my fit profile, and wrote a four-query strategy for Python/JS good-first-issues in RAG, LLM apps, and differential privacy. Two things broke before the paid scan worked: an expired `gh` token, and quoting `RAG OR …` as one phrase so searches returned zero hits — I left the OR tokens unquoted and dropped course `pathreview-ai301` sandboxes in ranking. The scan accepted five docs-sized issues; grading my picks kept apowerb#364 and the RAG glossary, rejected both openmed DP issues (open PRs already), and I swapped in CASSANDRA#4 as the third pick.
 
 **Unit 6: [one line on the tool work]**
 
